@@ -43,9 +43,6 @@ export const FormExtension = {
               .cancel {
                 background: linear-gradient(to right, rgb(224, 46, 46), rgb(236, 44, 44));
               }
-              .faq {
-                background-color: green;
-              }
             </style>
   
             <label for="name">Name</label>
@@ -59,7 +56,6 @@ export const FormExtension = {
   
             <input type="submit" class="submit" value="Submit">
             <button type="button" class="cancel">Cancel</button>
-            <button type="button" class="faq">❓FAQ❓</button>
           `;
   
       // Submit Button Event Listener
