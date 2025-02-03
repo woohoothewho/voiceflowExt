@@ -10,14 +10,12 @@ export const FormExtension = {
 
     formContainer.innerHTML = `
       <style>
-        /* Added font-family for the entire form */
         form {
           font-family: 'UCity Pro', sans-serif;
         }
-        /* Made labels more visible: increased font-size and darkened color */
         label {
-          font-size: 1em; /* Increased from 0.8em */
-          color: #333;    /* Changed from #888 */
+          font-size: 1em;
+          color: #333;
         }
         input[type="text"],
         input[type="email"] {
@@ -27,6 +25,8 @@ export const FormExtension = {
           background: transparent;
           margin: 5px 0;
           outline: none;
+          padding: 10px;     /* Increased padding for bigger inputs */
+          font-size: 1em;    /* Increased font size for readability */
         }
         .invalid {
           border-color: red;
@@ -34,19 +34,18 @@ export const FormExtension = {
         .zapisz {
           padding: 10px;
           border-radius: 5px;
-          width: 80%; /* Changed button width from 100% to 80% */
+          width: 100%;
           cursor: pointer;
           color: white;
           border: none;
           margin-top: 10px;
-          background: #006921; /* Changed button color to #006921 */
+          background: #006921;
         }
         .info {
           font-size: 0.9em;
           margin-bottom: 10px;
           color: #555;
         }
-        /* Added styling for warning notification */
         .warning {
           font-size: 0.8em;
           color: red;
@@ -54,57 +53,45 @@ export const FormExtension = {
         }
       </style>
 
-      <!-- Changed text as requested -->
       <p class="info"><strong>W razie gdyby nas rozłączyło, podaj proszę swoje imię i adress email.</strong></p>
 
-      <label for="name">Imię</label>
-      <input type="text" class="name" name="name" required><br><br>
 
-      <label for="email">Email</label>
-      <input type="email" class="email" name="email" required 
+      <input type="text" class="name" name="name" placeholder="Twoje Imie..." required><br><br>
+
+
+      <input type="email" class="email" name="email" placeholder="Twój E-mail..." required 
              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$" 
              title="Invalid email address"><br>
-      <!-- Warning message added for missing "@" -->
-      <div class="warning" style="display: none;">Email must include an "@" sign.</div>
+      <div class="warning" style="display: none;">Na potrzeby DEMO podaj zmyślony email zawierający @email</div>
       <br>
 
       <button type="button" class="zapisz">Zapisz</button>
     `;
 
-    // --- Warning Functionality ---
     const emailInput = formContainer.querySelector('.email');
     const warningDiv = formContainer.querySelector('.warning');
     
-    // Listen for input changes on the email field to check for "@" presence
     emailInput.addEventListener('input', () => {
-      if (!emailInput.value.includes('@')) {
-        warningDiv.style.display = 'block';
-      } else {
-        warningDiv.style.display = 'none';
-      }
+      warningDiv.style.display = emailInput.value.includes('@') ? 'none' : 'block';
     });
-    // --- End Warning Functionality ---
 
     formContainer.querySelector('.zapisz').addEventListener('click', () => {
       const nameInput = formContainer.querySelector('.name');
 
-      // Validate inputs, including explicit check for "@" in the email field.
       if (!nameInput.checkValidity() || !emailInput.checkValidity() || !emailInput.value.includes('@')) {
         if (!nameInput.checkValidity()) nameInput.classList.add('invalid');
         if (!emailInput.checkValidity() || !emailInput.value.includes('@')) {
           emailInput.classList.add('invalid');
-          warningDiv.style.display = 'block'; // Ensure warning is shown on submit
+          warningDiv.style.display = 'block';
         }
         return;
       }
 
-      // Submit the form data to Voiceflow
       window.voiceflow.chat.interact({
         type: 'complete',
         payload: { name: nameInput.value, email: emailInput.value },
       });
 
-      // Remove the form from the DOM after submission
       formContainer.remove();
     });
 
