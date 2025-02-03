@@ -56,10 +56,10 @@ export const FormExtension = {
       <p class="info"><strong>W razie gdyby nas rozłączyło, podaj proszę swoje imię i adress email.</strong></p>
 
 
-      <input type="text" class="name" name="name" placeholder="Twoje Imie..." required><br><br>
+      <input type="text" class="name" name="name" placeholder="Twoje wymyślone Imie..." required><br><br>
 
 
-      <input type="email" class="email" name="email" placeholder="Twój E-mail..." required 
+      <input type="email" class="email" name="email" placeholder="Twój wymyślony E-mail..." required 
              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$" 
              title="Invalid email address"><br>
       <div class="warning" style="display: none;">Na potrzeby DEMO podaj zmyślony email zawierający @email</div>
