@@ -10,6 +10,10 @@ export const FormExtension = {
 
     formContainer.innerHTML = `
       <style>
+        /* Added font-family for the entire form */
+        form {
+          font-family: 'UCity Pro', sans-serif;
+        }
         /* Made labels more visible: increased font-size and darkened color */
         label {
           font-size: 1em; /* Increased from 0.8em */
@@ -107,8 +111,8 @@ export const FormExtension = {
     element.appendChild(formContainer);
   },
 };
-  
-  
+
+
 
 export const MapExtension = {
   name: 'Maps',
