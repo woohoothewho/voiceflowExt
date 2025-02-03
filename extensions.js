@@ -100,7 +100,6 @@ export const FormExtension = {
 };
 
 
-
 export const MapExtension = {
   name: 'Maps',
   type: 'response',
