@@ -8,111 +8,78 @@ export const FormExtension = {
     render: ({ trace, element }) => {
       const formContainer = document.createElement('form');
   
-      formContainer.innerHTML = `
-            <style>
-              label {
-                font-size: 0.8em;
-                color: #888;
-              }
-              input[type="text"], input[type="email"], input[type="tel"] {
-                width: 100%;
-                border: none;
-                border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
-                background: transparent;
-                margin: 5px 0;
-                outline: none;
-              }
-              .phone {
-                width: 150px;
-              }
-              .invalid {
-                border-color: red;
-              }
-              .submit, .cancel, .faq {
-                padding: 10px;
-                border-radius: 5px;
-                width: 100%;
-                cursor: pointer;
-                color: white;
-                border: none;
-                margin-top: 10px;
-              }
-              .submit {
-                background: linear-gradient(to right, #2e6ee1, #2e7ff1);
-              }
-              .cancel {
-                background: linear-gradient(to right, rgb(224, 46, 46), rgb(236, 44, 44));
-              }
-              .faq {
-                background-color: green;
-              }
-            </style>
-  
-            <label for="name">Name</label>
-            <input type="text" class="name" name="name" required><br><br>
-  
-            <label for="email">Email</label>
-            <input type="email" class="email" name="email" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Invalid email address"><br><br>
-  
-            <label for="phone">Phone Number</label>
-            <input type="tel" class="phone" name="phone" required pattern="\\d+" title="Invalid phone number, please enter only numbers"><br><br>
-  
-            <input type="submit" class="submit" value="Submit">
-            <button type="button" class="cancel">Cancel</button>
-            <button type="button" class="faq">❓FAQ❓</button>
-          `;
-  
-      // Submit Button Event Listener
-      formContainer.addEventListener('submit', function (event) {
-        event.preventDefault();
-  
-        const name = formContainer.querySelector('.name');
-        const email = formContainer.querySelector('.email');
-        const phone = formContainer.querySelector('.phone');
-  
-        if (
-          !name.checkValidity() ||
-          !email.checkValidity() ||
-          !phone.checkValidity()
-        ) {
-          name.classList.add('invalid');
-          email.classList.add('invalid');
-          phone.classList.add('invalid');
-          return;
+    formContainer.innerHTML = `
+      <style>
+        label {
+          font-size: 0.8em;
+          color: #888;
         }
-  
-        formContainer.querySelector('.submit').remove();
-  
-        window.voiceflow.chat.interact({
-          type: 'complete',
-          payload: { name: name.value, email: email.value, phone: phone.value },
-        });
+        input[type="text"],
+        input[type="email"] {
+          width: 100%;
+          border: none;
+          border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+          background: transparent;
+          margin: 5px 0;
+          outline: none;
+        }
+        .invalid {
+          border-color: red;
+        }
+        .zapisz {
+          padding: 10px;
+          border-radius: 5px;
+          width: 100%;
+          cursor: pointer;
+          color: white;
+          border: none;
+          margin-top: 10px;
+          background: linear-gradient(to right, #2e6ee1, #2e7ff1);
+        }
+        .info {
+          font-size: 0.9em;
+          margin-bottom: 10px;
+          color: #555;
+        }
+      </style>
+
+      <p class="info"><strong>W razie gdyby nas rozłączyło, podaj swoje imię, a my się odezwiemy.</strong></p>
+
+      <label for="name">Imię</label>
+      <input type="text" class="name" name="name" required><br><br>
+
+      <label for="email">Email</label>
+      <input type="email" class="email" name="email" required 
+             pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$" 
+             title="Invalid email address"><br><br>
+
+      <button type="button" class="zapisz">Zapisz</button>
+    `;
+
+    formContainer.querySelector('.zapisz').addEventListener('click', () => {
+      const nameInput = formContainer.querySelector('.name');
+      const emailInput = formContainer.querySelector('.email');
+
+      // Validate inputs
+      if (!nameInput.checkValidity() || !emailInput.checkValidity()) {
+        if (!nameInput.checkValidity()) nameInput.classList.add('invalid');
+        if (!emailInput.checkValidity()) emailInput.classList.add('invalid');
+        return;
+      }
+
+      // Optionally remove the button after submission
+      formContainer.querySelector('.zapisz').remove();
+
+      // Send the data to Voiceflow
+      window.voiceflow.chat.interact({
+        type: 'complete',
+        payload: { name: nameInput.value, email: emailInput.value },
       });
-  
-      // Cancel Button Event Listener
-      formContainer.querySelector('.cancel').addEventListener('click', () => {
-        window.voiceflow.chat.interact({
-          type: 'cancel',
-          payload: { path: 'cancel' }, // Choosing the 'cancel' path
-        });
-  
-        formContainer.reset(); // Optionally reset the form
-        console.log('Cancel button clicked and Voiceflow notified.');
-      });
-  
-      // FAQ Button Event Listener
-      formContainer.querySelector('.faq').addEventListener('click', () => {
-        window.voiceflow.chat.interact({
-          type: 'faq',
-          payload: { path: 'faq' }, // Choosing the 'faq' path
-        });
-  
-        console.log('FAQ button clicked and Voiceflow notified.');
-      });
-  
-      element.appendChild(formContainer);
-    },
-  };  
+    });
+
+    element.appendChild(formContainer);
+  },
+};  
   
 
 export const MapExtension = {
