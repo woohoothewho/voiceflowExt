@@ -10,10 +10,10 @@ export const FormExtension = {
 
     formContainer.innerHTML = `
       <style>
-        /* Make labels more visible */
+        /* Made labels more visible: increased font-size and darkened color */
         label {
-          font-size: 1em;
-          color: #333;
+          font-size: 1em; /* Increased from 0.8em */
+          color: #333;    /* Changed from #888 */
         }
         input[type="text"],
         input[type="email"] {
@@ -30,18 +30,19 @@ export const FormExtension = {
         .zapisz {
           padding: 10px;
           border-radius: 5px;
-          width: 80%;
+          width: 80%; /* Changed button width from 100% to 80% */
           cursor: pointer;
           color: white;
           border: none;
           margin-top: 10px;
-          background: #006921;
+          background: #006921; /* Changed button color to #006921 */
         }
         .info {
           font-size: 0.9em;
           margin-bottom: 10px;
           color: #555;
         }
+        /* Added styling for warning notification */
         .warning {
           font-size: 0.8em;
           color: red;
@@ -49,9 +50,8 @@ export const FormExtension = {
         }
       </style>
 
-      <p class="info">
-        <strong>W razie gdyby nas rozłączyło, podaj proszę swoje imię i adress email.</strong>
-      </p>
+      <!-- Changed text as requested -->
+      <p class="info"><strong>W razie gdyby nas rozłączyło, podaj proszę swoje imię i adress email.</strong></p>
 
       <label for="name">Imię</label>
       <input type="text" class="name" name="name" required><br><br>
@@ -60,30 +60,36 @@ export const FormExtension = {
       <input type="email" class="email" name="email" required 
              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$" 
              title="Invalid email address"><br>
+      <!-- Warning message added for missing "@" -->
       <div class="warning" style="display: none;">Email must include an "@" sign.</div>
       <br>
 
       <button type="button" class="zapisz">Zapisz</button>
     `;
 
-    // Warning functionality: display warning if "@" is missing
+    // --- Warning Functionality ---
     const emailInput = formContainer.querySelector('.email');
     const warningDiv = formContainer.querySelector('.warning');
-
+    
+    // Listen for input changes on the email field to check for "@" presence
     emailInput.addEventListener('input', () => {
-      warningDiv.style.display = emailInput.value.includes('@') ? 'none' : 'block';
+      if (!emailInput.value.includes('@')) {
+        warningDiv.style.display = 'block';
+      } else {
+        warningDiv.style.display = 'none';
+      }
     });
+    // --- End Warning Functionality ---
 
-    // Handle form submission on "Zapisz" click
     formContainer.querySelector('.zapisz').addEventListener('click', () => {
       const nameInput = formContainer.querySelector('.name');
 
-      // Validate both inputs
+      // Validate inputs, including explicit check for "@" in the email field.
       if (!nameInput.checkValidity() || !emailInput.checkValidity() || !emailInput.value.includes('@')) {
         if (!nameInput.checkValidity()) nameInput.classList.add('invalid');
         if (!emailInput.checkValidity() || !emailInput.value.includes('@')) {
           emailInput.classList.add('invalid');
-          warningDiv.style.display = 'block';
+          warningDiv.style.display = 'block'; // Ensure warning is shown on submit
         }
         return;
       }
@@ -101,3 +107,451 @@ export const FormExtension = {
     element.appendChild(formContainer);
   },
 };
+  
+  
+
+export const MapExtension = {
+  name: 'Maps',
+  type: 'response',
+  match: ({ trace }) =>
+    trace.type === 'ext_map' || trace.payload.name === 'ext_map',
+  render: ({ trace, element }) => {
+    const GoogleMap = document.createElement('iframe')
+    const { apiKey, origin, destination, zoom, height, width } = trace.payload
+
+    GoogleMap.width = width || '240'
+    GoogleMap.height = height || '240'
+    GoogleMap.style.border = '0'
+    GoogleMap.loading = 'lazy'
+    GoogleMap.allowFullscreen = true
+    GoogleMap.src = `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${origin}&destination=${destination}&zoom=${zoom}`
+
+    element.appendChild(GoogleMap)
+  },
+}
+
+export const VideoExtension = {
+  name: 'Video',
+  type: 'response',
+  match: ({ trace }) =>
+    trace.type === 'ext_video' || trace.payload.name === 'ext_video',
+  render: ({ trace, element }) => {
+    const videoElement = document.createElement('video')
+    const { videoURL, autoplay, controls } = trace.payload
+
+    videoElement.width = 240
+    videoElement.src = videoURL
+
+    if (autoplay) {
+      videoElement.setAttribute('autoplay', '')
+    }
+    if (controls) {
+      videoElement.setAttribute('controls', '')
+    }
+
+    videoElement.addEventListener('ended', function () {
+      window.voiceflow.chat.interact({ type: 'complete' })
+    })
+    element.appendChild(videoElement)
+  },
+}
+
+export const TimerExtension = {
+  name: 'Timer',
+  type: 'response',
+  match: ({ trace }) =>
+    trace.type === 'ext_timer' || trace.payload.name === 'ext_timer',
+  render: ({ trace, element }) => {
+    const { duration } = trace.payload || 5
+    let timeLeft = duration
+
+    const timerContainer = document.createElement('div')
+    timerContainer.innerHTML = `<p>Time left: <span id="time">${timeLeft}</span></p>`
+
+    const countdown = setInterval(() => {
+      if (timeLeft <= 0) {
+        clearInterval(countdown)
+        window.voiceflow.chat.interact({ type: 'complete' })
+      } else {
+        timeLeft -= 1
+        timerContainer.querySelector('#time').textContent = timeLeft
+      }
+    }, 1000)
+
+    element.appendChild(timerContainer)
+  },
+}
+
+export const FileUploadExtension = {
+  name: 'FileUpload',
+  type: 'response',
+  match: ({ trace }) =>
+    trace.type === 'ext_fileUpload' || trace.payload.name === 'ext_fileUpload',
+  render: ({ trace, element }) => {
+    const fileUploadContainer = document.createElement('div')
+    fileUploadContainer.innerHTML = `
+      <style>
+        .my-file-upload {
+          border: 2px dashed rgba(46, 110, 225, 0.3);
+          padding: 20px;
+          text-align: center;
+          cursor: pointer;
+        }
+      </style>
+      <div class='my-file-upload'>Drag and drop a file here or click to upload</div>
+      <input type='file' style='display: none;'>
+    `
+
+    const fileInput = fileUploadContainer.querySelector('input[type=file]')
+    const fileUploadBox = fileUploadContainer.querySelector('.my-file-upload')
+
+    fileUploadBox.addEventListener('click', function () {
+      fileInput.click()
+    })
+
+    fileInput.addEventListener('change', function () {
+      const file = fileInput.files[0]
+      console.log('File selected:', file)
+
+      fileUploadContainer.innerHTML = `<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/upload/upload.gif" alt="Upload" width="50" height="50">`
+
+      var data = new FormData()
+      data.append('file', file)
+
+      fetch('https://tmpfiles.org/api/v1/upload', {
+        method: 'POST',
+        body: data,
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json()
+          } else {
+            throw new Error('Upload failed: ' + response.statusText)
+          }
+        })
+        .then((result) => {
+          fileUploadContainer.innerHTML =
+            '<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/check/check.gif" alt="Done" width="50" height="50">'
+          console.log('File uploaded:', result.data.url)
+          window.voiceflow.chat.interact({
+            type: 'complete',
+            payload: {
+              file: result.data.url.replace(
+                'https://tmpfiles.org/',
+                'https://tmpfiles.org/dl/'
+              ),
+            },
+          })
+        })
+        .catch((error) => {
+          console.error(error)
+          fileUploadContainer.innerHTML = '<div>Error during upload</div>'
+        })
+    })
+
+    element.appendChild(fileUploadContainer)
+  },
+}
+
+export const KBUploadExtension = {
+  name: 'KBUpload',
+  type: 'response',
+  match: ({ trace }) =>
+    trace.type === 'ext_KBUpload' || trace.payload.name === 'ext_KBUpload',
+  render: ({ trace, element }) => {
+    const apiKey = trace.payload.apiKey || null
+    const maxChunkSize = trace.payload.maxChunkSize || 1000
+    const tags = `tags=${JSON.stringify(trace.payload.tags)}&` || ''
+    const overwrite = trace.payload.overwrite || false
+
+    if (apiKey) {
+      const kbfileUploadContainer = document.createElement('div')
+      kbfileUploadContainer.innerHTML = `
+      <style>
+        .my-file-upload {
+          border: 2px dashed rgba(46, 110, 225, 0.3);
+          padding: 20px;
+          text-align: center;
+          cursor: pointer;
+        }
+      </style>
+      <div class='my-file-upload'>Drag and drop a file here or click to upload</div>
+      <input type='file' accept='.txt,.text,.pdf,.docx' style='display: none;'>
+    `
+
+      const fileInput = kbfileUploadContainer.querySelector('input[type=file]')
+      const fileUploadBox =
+        kbfileUploadContainer.querySelector('.my-file-upload')
+
+      fileUploadBox.addEventListener('click', function () {
+        fileInput.click()
+      })
+
+      fileInput.addEventListener('change', function () {
+        const file = fileInput.files[0]
+
+        kbfileUploadContainer.innerHTML = `<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/upload/upload.gif" alt="Upload" width="50" height="50">`
+
+        const formData = new FormData()
+        formData.append('file', file)
+
+        fetch(
+          `https://api.voiceflow.com/v3alpha/knowledge-base/docs/upload?${tags}overwrite=${overwrite}&maxChunkSize=${maxChunkSize}`,
+          {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              Authorization: apiKey,
+            },
+            body: formData,
+          }
+        )
+          .then((response) => {
+            if (response.ok) {
+              return response.json()
+            } else {
+              throw new Error('Upload failed: ' + response.statusText)
+              window.voiceflow.chat.interact({
+                type: 'error',
+                payload: {
+                  id: 0,
+                },
+              })
+            }
+          })
+          .then((result) => {
+            kbfileUploadContainer.innerHTML =
+              '<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/check/check.gif" alt="Done" width="50" height="50">'
+            window.voiceflow.chat.interact({
+              type: 'complete',
+              payload: {
+                id: result.data.documentID || 0,
+              },
+            })
+          })
+          .catch((error) => {
+            console.error(error)
+            kbfileUploadContainer.innerHTML = '<div>Error during upload</div>'
+          })
+      })
+      element.appendChild(kbfileUploadContainer)
+    }
+  },
+}
+
+export const DateExtension = {
+  name: 'Date',
+  type: 'response',
+  match: ({ trace }) =>
+    trace.type === 'ext_date' || trace.payload.name === 'ext_date',
+  render: ({ trace, element }) => {
+    const formContainer = document.createElement('form')
+
+    // Get current date and time
+    let currentDate = new Date()
+    let minDate = new Date()
+    minDate.setMonth(currentDate.getMonth() - 1)
+    let maxDate = new Date()
+    maxDate.setMonth(currentDate.getMonth() + 2)
+
+    // Convert to ISO string and remove seconds and milliseconds
+    let minDateString = minDate.toISOString().slice(0, 16)
+    let maxDateString = maxDate.toISOString().slice(0, 16)
+
+    formContainer.innerHTML = `
+          <style>
+            label {
+              font-size: 0.8em;
+              color: #888;
+            }
+            input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+                border: none;
+                background: transparent;
+                border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+                bottom: 0;
+                outline: none;
+                color: transparent;
+                cursor: pointer;
+                height: auto;
+                left: 0;
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: auto;
+                padding:6px;
+                font: normal 8px sans-serif;
+            }
+            .meeting input{
+              background: transparent;
+              border: none;
+              padding: 2px;
+              border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+              font: normal 14px sans-serif;
+              outline:none;
+              margin: 5px 0;
+              &:focus{outline:none;}
+            }
+            .invalid {
+              border-color: red;
+            }
+            .submit {
+              background: linear-gradient(to right, #2e6ee1, #2e7ff1 );
+              border: none;
+              color: white;
+              padding: 10px;
+              border-radius: 5px;
+              width: 100%;
+              cursor: pointer;
+              opacity: 0.3;
+            }
+            .submit:enabled {
+              opacity: 1; /* Make the button fully opaque when it's enabled */
+            }
+          </style>
+          <label for="date">Select your date/time</label><br>
+          <div class="meeting"><input type="datetime-local" id="meeting" name="meeting" value="" min="${minDateString}" max="${maxDateString}" /></div><br>
+          <input type="submit" id="submit" class="submit" value="Submit" disabled="disabled">
+          `
+
+    const submitButton = formContainer.querySelector('#submit')
+    const datetimeInput = formContainer.querySelector('#meeting')
+
+    datetimeInput.addEventListener('input', function () {
+      if (this.value) {
+        submitButton.disabled = false
+      } else {
+        submitButton.disabled = true
+      }
+    })
+    formContainer.addEventListener('submit', function (event) {
+      event.preventDefault()
+
+      const datetime = datetimeInput.value
+      console.log(datetime)
+      let [date, time] = datetime.split('T')
+
+      formContainer.querySelector('.submit').remove()
+
+      window.voiceflow.chat.interact({
+        type: 'complete',
+        payload: { date: date, time: time },
+      })
+    })
+    element.appendChild(formContainer)
+  },
+}
+
+export const ConfettiExtension = {
+  name: 'Confetti',
+  type: 'effect',
+  match: ({ trace }) =>
+    trace.type === 'ext_confetti' || trace.payload.name === 'ext_confetti',
+  effect: ({ trace }) => {
+    const canvas = document.querySelector('#confetti-canvas')
+
+    var myConfetti = confetti.create(canvas, {
+      resize: true,
+      useWorker: true,
+    })
+    myConfetti({
+      particleCount: 200,
+      spread: 160,
+    })
+  },
+}
+
+export const FeedbackExtension = {
+  name: 'Feedback',
+  type: 'response',
+  match: ({ trace }) =>
+    trace.type === 'ext_feedback' || trace.payload.name === 'ext_feedback',
+  render: ({ trace, element }) => {
+    const feedbackContainer = document.createElement('div')
+
+    feedbackContainer.innerHTML = `
+          <style>
+            .vfrc-feedback {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .vfrc-feedback--description {
+                font-size: 0.8em;
+                color: grey;
+                pointer-events: none;
+            }
+
+            .vfrc-feedback--buttons {
+                display: flex;
+            }
+
+            .vfrc-feedback--button {
+                margin: 0;
+                padding: 0;
+                margin-left: 0px;
+                border: none;
+                background: none;
+                opacity: 0.2;
+            }
+
+            .vfrc-feedback--button:hover {
+              opacity: 0.5; /* opacity on hover */
+            }
+
+            .vfrc-feedback--button.selected {
+              opacity: 0.6;
+            }
+
+            .vfrc-feedback--button.disabled {
+                pointer-events: none;
+            }
+
+            .vfrc-feedback--button:first-child svg {
+                fill: none; /* color for thumb up */
+                stroke: none;
+                border: none;
+                margin-left: 6px;
+            }
+
+            .vfrc-feedback--button:last-child svg {
+                margin-left: 4px;
+                fill: none; /* color for thumb down */
+                stroke: none;
+                border: none;
+                transform: rotate(180deg);
+            }
+          </style>
+          <div class="vfrc-feedback">
+            <div class="vfrc-feedback--description">Czy to było pomocne?</div>
+            <div class="vfrc-feedback--buttons">
+              <button class="vfrc-feedback--button" data-feedback="1">${SVG_Thumb}</button>
+              <button class="vfrc-feedback--button" data-feedback="0">${SVG_Thumb}</button>
+            </div>
+          </div>
+        `
+
+    feedbackContainer
+      .querySelectorAll('.vfrc-feedback--button')
+      .forEach((button) => {
+        button.addEventListener('click', function (event) {
+          const feedback = this.getAttribute('data-feedback')
+          window.voiceflow.chat.interact({
+            type: 'complete',
+            payload: { feedback: feedback },
+          })
+
+          feedbackContainer
+            .querySelectorAll('.vfrc-feedback--button')
+            .forEach((btn) => {
+              btn.classList.add('disabled')
+              if (btn === this) {
+                btn.classList.add('selected')
+              }
+            })
+        })
+      })
+
+    element.appendChild(feedbackContainer)
+  },
+}
